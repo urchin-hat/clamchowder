@@ -25,7 +25,7 @@ function usage() {
     echo ""
     echo "Subcommands:"
     echo "  cook <name>         Scaffold a new operational command project"
-    echo "  link <name>         Register command to /usr/local/bin (requires sudo)"
+    echo "  link <name> [alias] Register command to /usr/local/bin (requires sudo)"
     echo "  list                List all managed commands"
     echo "  taste <name>        Preview the command's documentation"
     echo "  serve <name> [args] Run the command through the framework"
@@ -68,10 +68,15 @@ function sub_cook() {
 
 function sub_link() {
     local name=$1
+    local alias=$2
+    
     if [[ -z "$name" ]]; then
-        clam_error "Missing command name. Usage: clamchowder link <name>"
+        clam_error "Missing command name. Usage: clamchowder link <name> [alias]"
         return 1
     fi
+
+    # Default alias to the project name if not provided
+    [[ -z "$alias" ]] && alias="$name"
 
     if ! is_valid_command "$name"; then
         clam_error "Command '$name' not found."
@@ -79,7 +84,7 @@ function sub_link() {
     fi
 
     local src="${CLAM_COMMANDS_DIR}/${name}/bin/main"
-    local dest="/usr/local/bin/${name}"
+    local dest="/usr/local/bin/${alias}"
 
     # Double check if we are about to overwrite a critical system command
     if [[ -e "$dest" ]]; then
@@ -92,11 +97,11 @@ function sub_link() {
         sudo rm "$dest"
     fi
 
-    clam_info "Linking $src to $dest..."
+    clam_info "Linking $name to $dest..."
     sudo ln -s "$src" "$dest"
     
     if [[ $? -eq 0 ]]; then
-        clam_success "Successfully linked '$name'. You can now run it directly from anywhere!"
+        clam_success "Successfully linked '$name' as '$alias'. You can now run it directly from anywhere!"
     else
         clam_error "Failed to create symlink. You might need sudo privileges."
     fi
