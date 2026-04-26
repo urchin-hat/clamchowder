@@ -123,16 +123,9 @@ function sub_list() {
         return 0
     fi
 
-    if whence tree > /dev/null; then
-        tree -L 2 "$CLAM_COMMANDS_DIR"
-    else
-        # Fallback to a simple but clean view
-        for cmd_dir in "${CLAM_COMMANDS_DIR}"/*(/N); do
-            echo "📦 ${cmd_dir:t}"
-            [[ -f "$cmd_dir/bin/main" ]] && echo "   └── bin/main"
-            [[ -f "$cmd_dir/doc/explanation.mo" ]] && echo "   └── doc/explanation.mo"
-        done
-    fi
+    for cmd in "${CLAM_COMMANDS_DIR}"/*(/N); do
+        echo "  - ${cmd:t}"
+    done
 }
 
 function sub_taste() {
