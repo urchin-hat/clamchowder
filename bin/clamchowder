@@ -41,7 +41,7 @@ function sub_cook() {
         return 1
     fi
 
-    # Check for name collisions with existing system commands
+    # Check for name collisions
     if whence "$name" > /dev/null; then
         local existing_path=$(whence -p "$name")
         clam_error "Command '$name' already exists in your system!"
@@ -57,19 +57,46 @@ function sub_cook() {
     fi
 
     clam_info "Cooking new command: $name..."
-    mkdir -p "${target_dir}"/{bin,config,doc,sql}
+    mkdir -p "${target_dir}"/{bin,config,doc}
 
-    # Replace placeholders using sed
-    # Note: we use | as separator for sed to avoid issues with / in paths
+    # Standard Skeleton Rendering
     sed -e "s|{{name}}|${name}|g" \
         -e "s|{{CLAM_MO}}|${CLAM_MO}|g" \
         "${CLAM_SKELETON}/bin/main.zsh" > "${target_dir}/bin/main"
     
     sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/config/main.zsh" > "${target_dir}/config/main.zsh"
     sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/doc/explanation.mo" > "${target_dir}/doc/explanation.mo"
-    sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/sql/query.sql" > "${target_dir}/sql/query.sql"
     
     chmod +x "${target_dir}/bin/main"
+
+    # --- Interactive SQL Setup ---
+    echo -n "🥣 Add SQL features to this command? [y/N]: "
+    read -r add_sql
+    if [[ "$add_sql" =~ ^[yY]$ ]]; then
+        mkdir -p "${target_dir}/sql"
+        sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/sql/query.sql" > "${target_dir}/sql/query.sql"
+        
+        echo -n "   Enter DB_HOST [localhost]: "
+        read -r db_host
+        db_host=${db_host:-localhost}
+        
+        echo -n "   Enter DB_USER [root]: "
+        read -r db_user
+        db_user=${db_user:-root}
+
+        echo -n "   Enter DB_NAME: "
+        read -r db_name
+
+        {
+            echo ""
+            echo "# --- SQL Configuration (Added by cook) ---"
+            echo "export DB_HOST=\"$db_host\""
+            echo "export DB_USER=\"$db_user\""
+            echo "export DB_NAME=\"$db_name\""
+        } >> "${target_dir}/config/main.zsh"
+        
+        clam_success "SQL features added and config updated."
+    fi
 
     clam_success "Successfully cooked '$name' at $target_dir"
     echo "Next step: clamchowder link $name"
