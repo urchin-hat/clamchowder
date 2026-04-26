@@ -190,11 +190,14 @@ function sub_serve() {
     fi
 
     if ! is_valid_command "$name"; then
-        clam_error "Command '$name' not found."
+        clam_error "Command '$name' not found in $CLAM_COMMANDS_DIR."
         return 1
     fi
 
-    clam_info "Serving command: $name"
+    clam_info "Debug Mode: Serving command '$name' directly..."
+    
+    # In serve mode, we manually source config because the script might not be 
+    # optimized for standalone execution yet.
     source_cmd_config "$name"
     
     local bin_file="${CLAM_COMMANDS_DIR}/${name}/bin/main"
@@ -202,6 +205,7 @@ function sub_serve() {
         "$bin_file" "$@"
     else
         clam_error "Executable not found or not runnable: $bin_file"
+        return 1
     fi
 }
 
