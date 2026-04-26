@@ -1,0 +1,142 @@
+#!/bin/zsh
+
+# -----------------------------------------------------------------------------
+# ClamChowder - Standarized Operational Command Framework
+# -----------------------------------------------------------------------------
+
+# Base paths
+readonly CLAM_ROOT=${0:A:h:h}
+readonly CLAM_LIB="${CLAM_ROOT}/lib"
+readonly CLAM_SKELETON="${CLAM_ROOT}/skeleton"
+readonly CLAM_MO="${CLAM_LIB}/mo/mo"
+
+# User-specific commands directory (default to $CLAM_ROOT/commands)
+# Can be overridden by environment variable
+export CLAM_COMMANDS_DIR="${CLAM_COMMANDS_DIR:-${CLAM_ROOT}/commands}"
+
+# Load libraries
+source "${CLAM_LIB}/ui.zsh"
+source "${CLAM_LIB}/core.zsh"
+
+function usage() {
+    echo "ClamChowder🥣🐚 - Standardized Operational Command Framework"
+    echo ""
+    echo "Usage: clamchowder <subcommand> [args]"
+    echo ""
+    echo "Subcommands:"
+    echo "  cook <name>         Scaffold a new operational command"
+    echo "  list                List all managed commands"
+    echo "  taste <name>        Render and display the documentation"
+    echo "  serve <name> [args] Execute the command"
+    echo "  help                Show this help message"
+}
+
+# --- Subcommand Implementations ---
+
+function sub_cook() {
+    local name=$1
+    if [[ -z "$name" ]]; then
+        clam_error "Missing command name. Usage: clamchowder cook <name>"
+        return 1
+    fi
+
+    local target_dir="${CLAM_COMMANDS_DIR}/${name}"
+    if [[ -d "$target_dir" ]]; then
+        clam_error "Command '$name' already exists at $target_dir"
+        return 1
+    fi
+
+    clam_info "Cooking new command: $name..."
+    mkdir -p "${target_dir}"/{bin,config,doc,sql}
+
+    # Replace {{name}} with actual name using sed
+    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/bin/main.zsh" > "${target_dir}/bin/main"
+    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/config/main.zsh" > "${target_dir}/config/main.zsh"
+    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/doc/explanation.mo" > "${target_dir}/doc/explanation.mo"
+    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/sql/query.sql" > "${target_dir}/sql/query.sql"
+    
+    chmod +x "${target_dir}/bin/main"
+
+    clam_success "Successfully cooked '$name' at $target_dir"
+}
+
+function sub_list() {
+    clam_header "Managed Operational Commands"
+    if [[ ! -d "$CLAM_COMMANDS_DIR" ]]; then
+        echo "No commands directory found at $CLAM_COMMANDS_DIR"
+        return 0
+    fi
+
+    for cmd in "${CLAM_COMMANDS_DIR}"/*(/N); do
+        echo "  - ${cmd:t}"
+    done
+}
+
+function sub_taste() {
+    local name=$1
+    if [[ -z "$name" ]]; then
+        clam_error "Missing command name. Usage: clamchowder taste <name>"
+        return 1
+    fi
+
+    if ! is_valid_command "$name"; then
+        clam_error "Command '$name' not found."
+        return 1
+    fi
+
+    # Load config and ensure variables are available for mo
+    source_cmd_config "$name"
+    export name="$name" 
+    
+    local doc_file="${CLAM_COMMANDS_DIR}/${name}/doc/explanation.mo"
+    if [[ -f "$doc_file" ]]; then
+        clam_header "Tasting Documentation: $name"
+        # mo reads from stdin and renders using environment variables
+        "$CLAM_MO" "$doc_file"
+    else
+        clam_error "Documentation not found for $name"
+    fi
+}
+
+function sub_serve() {
+    local name=$1
+    shift
+    if [[ -z "$name" ]]; then
+        clam_error "Missing command name. Usage: clamchowder serve <name> [args]"
+        return 1
+    fi
+
+    if ! is_valid_command "$name"; then
+        clam_error "Command '$name' not found."
+        return 1
+    fi
+
+    clam_info "Serving command: $name"
+    source_cmd_config "$name"
+    
+    local bin_file="${CLAM_COMMANDS_DIR}/${name}/bin/main"
+    if [[ -x "$bin_file" ]]; then
+        "$bin_file" "$@"
+    else
+        clam_error "Executable not found or not runnable: $bin_file"
+    fi
+}
+
+# --- Main Dispatcher ---
+
+case "$1" in
+    cook)   sub_cook "$2" ;;
+    list)   sub_list ;;
+    taste)  sub_taste "$2" ;;
+    serve)  shift; sub_serve "$@" ;;
+    help|--help|-h) usage ;;
+    *)
+        if [[ -n "$1" ]]; then
+            clam_error "Unknown subcommand: $1"
+            usage
+            exit 1
+        else
+            usage
+        fi
+        ;;
+esac
