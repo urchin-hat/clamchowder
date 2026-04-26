@@ -1,7 +1,7 @@
 # ClamChowder 🥣🐚
 
 <p align="center">
-  <img src="image/logo.png" alt="ClamChowder Logo" width="300">
+  <img src="image/logo.png" alt="ClamChowder Logo" width="400">
 </p>
 
 **ClamChowder** is a zsh-based meta-framework for managing standardized operational commands. 
