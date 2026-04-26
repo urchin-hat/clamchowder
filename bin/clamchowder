@@ -81,12 +81,18 @@ function sub_link() {
     local src="${CLAM_COMMANDS_DIR}/${name}/bin/main"
     local dest="/usr/local/bin/${name}"
 
-    clam_info "Linking $src to $dest..."
+    # Double check if we are about to overwrite a critical system command
     if [[ -e "$dest" ]]; then
-        clam_warn "$dest already exists. Overwriting..."
+        if [[ ! -L "$dest" ]]; then
+            clam_error "Collision detected! '$dest' is a real file/binary, not a symbolic link."
+            clam_error "Aborting to prevent damaging system commands."
+            return 1
+        fi
+        clam_warn "$dest already exists as a symlink. Overwriting..."
         sudo rm "$dest"
     fi
-    
+
+    clam_info "Linking $src to $dest..."
     sudo ln -s "$src" "$dest"
     
     if [[ $? -eq 0 ]]; then
@@ -172,6 +178,12 @@ case "$1" in
             clam_error "Unknown subcommand: $1"
             usage
             exit 1
+        else
+            usage
+        fi
+        ;;
+esac
+t 1
         else
             usage
         fi
