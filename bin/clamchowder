@@ -28,7 +28,7 @@ function usage() {
     echo "  link <name> [alias] Register command to /usr/local/bin (requires sudo)"
     echo "  list                List all managed commands"
     echo "  taste <name>        Preview the command's documentation"
-    echo "  serve <name> [args] Run the command through the framework"
+    echo "  serve <name> [args] Test/run the command before linking"
     echo "  help                Show this help message"
 }
 
