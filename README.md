@@ -4,61 +4,45 @@
   <img src="image/logo.png" alt="ClamChowder Logo" width="300">
 </p>
 
-**ClamChowder** is a zsh-based command-line framework designed to scaffold, manage, and execute standardized operational command projects.
+**ClamChowder** is a zsh-based meta-framework for managing standardized operational commands. 
 
-It helps you organize your routine scripts, SQL queries, and documentation into a consistent "recipe," making your operational tasks reproducible and easy to share.
+It streamlines the creation of routine scripts, allowing you to bundle execution logic, configuration, and documentation into a single, portable unit.
 
-## ✨ Key Features
+## ✨ Features
 
-- **Standardized Scaffolding**: Quickly create a new operational command with a pre-defined structure (`bin`, `config`, `doc`, `sql`).
-- **Mustache Integration**: Built-in support for [mo](https://github.com/tests-always-included/mo) to render dynamic documentation and configurations.
-- **Zsh Powered**: Leverages the power of Zsh for robust path handling and modern shell features.
-- **Clean Separation**: Keeps your logic, configuration, and data (SQL) separate and organized.
+- **Standardized Scaffolding**: Create consistent command structures instantly.
+- **System Integration**: Easily register your scripts as system-wide commands via symlinks.
+- **Dynamic Docs**: Integrated [mo](https://github.com/tests-always-included/mo) for rendering templates.
+- **Zsh-Native**: Built with Zsh for robust and modern shell scripting.
 
-## 🏗️ The "Recipe" Structure
+## 🏗️ Command Structure
 
-Every command cooked by ClamChowder follows this layout:
+Commands cooked by ClamChowder follow this layout:
 
 ```text
 <cmd_name>/
 ├── bin/          # Execution logic (main)
-├── config/       # Configuration values (auto-sourced)
-├── doc/          # Dynamic documentation (Mustache templates)
-└── sql/          # SQL queries or raw data
+├── config/       # Configuration values
+├── doc/          # Documentation (Mustache templates)
+└── sql/          # Raw data or query templates
 ```
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Zsh
-
-### Installation
-```bash
-git clone --recursive https://github.com/your-repo/clamchowder.git
-cd clamchowder
-# Add bin/clamchowder to your PATH
-```
-
-### Basic Usage
-
 1. **Cook** a new command:
    ```bash
-   clamchowder cook my-new-task
+   clamchowder cook my-task
    ```
 
-2. **Taste** the documentation (renders Mustache templates):
+2. **Link** it to your system:
    ```bash
-   clamchowder taste my-new-task
+   clamchowder link my-task
    ```
 
-3. **Serve** the command:
+3. **Execute** directly:
    ```bash
-   clamchowder serve my-new-task
+   my-task [args]
    ```
-
-## 📘 Design Philosophy
-
-For detailed architecture and internal workings, please refer to [DESIGN.md](./DESIGN.md).
 
 ## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) for details.

@@ -1,2 +1,2 @@
--- SQL query for {{name}}
-SELECT * FROM users WHERE status = 'active';
+-- SQL query template for {{name}}
+-- SELECT * FROM your_table WHERE id = '{{ARG}}';

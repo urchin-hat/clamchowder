@@ -1,53 +1,33 @@
-# ClamChowder
+# ClamChowder Design Document
 
 ## Overview
-`ClamChowder` is a zsh-based command-line framework designed to scaffold, manage, and execute standardized "operational command projects." 
-As the name suggests, it acts like a soup that brings various operational commands (ingredients) together into a cohesive structure.
+`ClamChowder` is a zsh-based framework to scaffold, manage, and distribute standardized operational commands. It allows you to package logic, configuration, and documentation into a single directory and register it as a system-wide command.
 
-## Architecture
+## Core Concepts
+1. **Standardized Structure**: Every command follows the same layout (bin, config, doc, sql), making it easy for team members to understand and maintain.
+2. **Direct Execution via Symlinks**: Commands are meant to be linked to `/usr/local/bin`, allowing them to be executed directly while maintaining their internal structure.
+3. **Dynamic Documentation**: Uses the Mustache template engine (`mo`) to render documentation with live configuration values.
 
-### 1. Framework Structure
+## Directory Structure
 ```text
 clamchowder/
 ├── bin/
-│   └── clamchowder         # Main entry point (zsh)
+│   └── clamchowder         # Framework CLI
 ├── lib/
-│   ├── core.zsh            # Core framework logic
-│   ├── mo/                 # Mustache template engine (Git Submodule)
-│   └── ui.zsh              # UI and logging utilities
-├── skeleton/               # Templates for new operational commands
-│   ├── bin/
-│   │   └── main.zsh        # Execution logic template
-│   ├── config/
-│   │   └── main.zsh        # Configuration template
-│   ├── doc/
-│   │   └── explanation.mo  # Documentation template (Mustache)
-│   └── sql/
-│       └── query.sql       # SQL query template
-└── DESIGN.md               # This document
-```
-
-### 2. Standard Operational Command Structure
-Commands generated via `clamchowder cook <name>` follow this convention:
-
-```text
-<cmd_name>/
-├── bin/
-│   └── main                # The logic of the command
-├── config/
-│   └── main                # Config values (auto-sourced before execution)
-├── doc/
-│   └── explanation.mo      # Dynamic documentation rendered via 'mo'
-└── sql/
-    └── query.sql           # SQL queries or data logic
+│   ├── core.zsh            # Shared logic
+│   ├── mo/                 # Mustache engine (Submodule)
+│   └── ui.zsh              # UI utilities
+├── skeleton/               # Template for 'cook' command
+│   ├── bin/main.zsh        # Command logic
+│   ├── config/main.zsh     # Configuration
+│   ├── doc/explanation.mo  # Documentation
+│   └── sql/query.sql       # Data/SQL
+└── commands/               # (Optional) Default location for cooked commands
 ```
 
 ## Subcommands
-
-*   `clamchowder cook <name>`: Scaffolds a new operational command structure from the `skeleton/`.
-*   `clamchowder list`: Lists all managed operational commands.
-*   `clamchowder taste <name>`: Renders and displays the `doc/explanation.mo` using `mo`.
-*   `clamchowder serve <name> [args]`: Executes the specified command. It automatically sources `config/main` before running `bin/main`.
-
-## External Dependencies
-*   **mo**: A Mustache template engine. Integrated as a Git Submodule in `lib/mo` for dynamic document rendering.
+- `cook <name>`: Generates a new command directory from skeletons.
+- `link <name>`: Creates a symlink in `/usr/local/bin` to make the command available system-wide.
+- `list`: Lists all commands within the managed directory.
+- `taste <name>`: Renders the command's documentation.
+- `serve <name>`: Executes the command through the framework (useful for debugging).

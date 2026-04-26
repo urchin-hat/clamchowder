@@ -24,11 +24,11 @@ function usage() {
     echo "Usage: clamchowder <subcommand> [args]"
     echo ""
     echo "Subcommands:"
-    echo "  cook <name>         Scaffold a new operational command"
-    echo "  link <name>         Create a symlink in /usr/local/bin (requires sudo)"
+    echo "  cook <name>         Scaffold a new operational command project"
+    echo "  link <name>         Register command to /usr/local/bin (requires sudo)"
     echo "  list                List all managed commands"
-    echo "  taste <name>        Render and display the documentation"
-    echo "  serve <name> [args] Execute the command"
+    echo "  taste <name>        Preview the command's documentation"
+    echo "  serve <name> [args] Run the command through the framework"
     echo "  help                Show this help message"
 }
 
