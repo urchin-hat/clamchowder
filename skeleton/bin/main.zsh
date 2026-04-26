@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 # --- ClamChowder Operational Script: {{name}} ---
+# @description: (Describe your command here)
 # @creator: s-fukushima
 # ---------------------------------------------------------
 
@@ -18,90 +19,45 @@ readonly CLAM_MO="{{CLAM_MO}}"
 # Load config
 if [[ -f "$CMD_CONFIG" ]]; then
     source "$CMD_CONFIG"
-else
-    echo "Error: Config not found at $CMD_CONFIG" >&2
-    exit 1
 fi
 
-# UI Decoration
-HARF=$(($(tput cols) / 2))
-LINE=$(printf '%.0s-' {1..$HARF})
+# UI Decoration (Optional)
+# HARF=$(($(tput cols) / 2))
+# LINE=$(printf '%.0s-' {1..$HARF})
 
 # @functions
 # -------------------------
 
-# Show help (Taste the documentation)
+# Example: Render the documentation using 'mo'
 function func_help() {
     export name="{{name}}"
-    "$CLAM_MO" "$CMD_DOC/explanation.mo"
-}
-
-# Render query (Dry run)
-function dryrun() {
-    export ARG=$1
-    "$CLAM_MO" "$CMD_SQL/query.sql"
-}
-
-# Execute query in MySQL
-function run_query() {
-    local query=$(dryrun "$1")
-    # Using \G for vertical output as in your original script
-    mysql -e "${query%;}\G"
+    if [[ -f "$CMD_DOC/explanation.mo" ]]; then
+        "$CLAM_MO" "$CMD_DOC/explanation.mo"
+    else
+        echo "Usage: {{name}} [args]"
+    fi
 }
 
 # @validation
 # -------------------------
-# MySQL connection check
-if ! mysql -e "show tables;" &>/dev/null; then
-    echo "$LINE"
-    echo "Port forward to MySQL(aws-rds ${DB_HOST:-unknown})"
-    echo "$LINE"
-    func_help
-    exit 1
-fi
+# (Add your validation logic here, e.g., checking tool availability or connectivity)
 
 # @main
 # -------------------------
 
+# Basic argument handling template
 case $# in
     0)
         func_help
         exit 0
         ;;
-    1)
-        # Default behavior: run the query with 1st argument as parameter
-        run_query "$1"
-        ;;
-    2)
-        local op=$1
-        local arg=$2
-        case "$op" in
-            --dry)
-                dryrun "$arg"
-                ;;
-            --run)
-                run_query "$arg"
-                ;;
-            --all)
-                local query=$(dryrun "$arg")
-                echo "$LINE"
-                echo "| execute query"
-                echo "$LINE"
-                echo "$query"
-                echo "$LINE"
-                echo "| query result"
-                echo "$LINE"
-                run_query "$arg"
-                ;;
-            *)
-                func_help
-                exit 0
-                ;;
-        esac
-        ;;
     *)
-        func_help
-        exit 1
+        # Example logic:
+        # ARG=$1
+        # QUERY=$("$CLAM_MO" "$CMD_SQL/query.sql")
+        # echo "Executing with ARG: $ARG"
+        
+        echo "Command {{name}} executed with arguments: $@"
         ;;
 esac
 
