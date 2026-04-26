@@ -21,10 +21,6 @@ if [[ -f "$CMD_CONFIG" ]]; then
     source "$CMD_CONFIG"
 fi
 
-# UI Decoration (Optional)
-# HARF=$(($(tput cols) / 2))
-# LINE=$(printf '%.0s-' {1..$HARF})
-
 # @functions
 # -------------------------
 
@@ -34,29 +30,33 @@ function func_help() {
     if [[ -f "$CMD_DOC/explanation.mo" ]]; then
         "$CLAM_MO" "$CMD_DOC/explanation.mo"
     else
-        echo "Usage: {{name}} [args]"
+        echo "Usage: {{name}} [subcommand] [args]"
     fi
 }
 
 # @validation
 # -------------------------
-# (Add your validation logic here, e.g., checking tool availability or connectivity)
+# (Add your validation logic here)
 
 # @main
 # -------------------------
 
-# Basic argument handling template
-case $# in
-    0)
+# Argument handling template
+case $1 in
+    ""|help|--help|-h)
         func_help
         exit 0
         ;;
     *)
-        # Example logic:
-        # ARG=$1
-        # QUERY=$("$CLAM_MO" "$CMD_SQL/query.sql")
-        # echo "Executing with ARG: $ARG"
-        
+        # Default behavior or subcommand routing
+        # Example:
+        # local sub_cmd=$1
+        # shift
+        # case $sub_cmd in
+        #     sub1) echo "Running sub1 with $@" ;;
+        #     *)    echo "Unknown command: $sub_cmd"; exit 1 ;;
+        # esac
+
         echo "Command {{name}} executed with arguments: $@"
         ;;
 esac
