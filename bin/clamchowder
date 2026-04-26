@@ -41,6 +41,15 @@ function sub_cook() {
         return 1
     fi
 
+    # Check for name collisions with existing system commands
+    if whence "$name" > /dev/null; then
+        local existing_path=$(whence -p "$name")
+        clam_error "Command '$name' already exists in your system!"
+        [[ -n "$existing_path" ]] && echo "Located at: $existing_path"
+        echo "Please choose a different name to avoid conflicts."
+        return 1
+    fi
+
     local target_dir="${CLAM_COMMANDS_DIR}/${name}"
     if [[ -d "$target_dir" ]]; then
         clam_error "Command '$name' already exists at $target_dir"
@@ -183,12 +192,6 @@ case "$1" in
             clam_error "Unknown subcommand: $1"
             usage
             exit 1
-        else
-            usage
-        fi
-        ;;
-esac
-t 1
         else
             usage
         fi
