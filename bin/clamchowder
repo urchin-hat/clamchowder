@@ -25,6 +25,7 @@ function usage() {
     echo ""
     echo "Subcommands:"
     echo "  cook <name>         Scaffold a new operational command"
+    echo "  link <name>         Create a symlink in /usr/local/bin (requires sudo)"
     echo "  list                List all managed commands"
     echo "  taste <name>        Render and display the documentation"
     echo "  serve <name> [args] Execute the command"
@@ -49,15 +50,50 @@ function sub_cook() {
     clam_info "Cooking new command: $name..."
     mkdir -p "${target_dir}"/{bin,config,doc,sql}
 
-    # Replace {{name}} with actual name using sed
-    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/bin/main.zsh" > "${target_dir}/bin/main"
-    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/config/main.zsh" > "${target_dir}/config/main.zsh"
-    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/doc/explanation.mo" > "${target_dir}/doc/explanation.mo"
-    sed "s/{{name}}/${name}/g" "${CLAM_SKELETON}/sql/query.sql" > "${target_dir}/sql/query.sql"
+    # Replace placeholders using sed
+    # Note: we use | as separator for sed to avoid issues with / in paths
+    sed -e "s|{{name}}|${name}|g" \
+        -e "s|{{CLAM_MO}}|${CLAM_MO}|g" \
+        "${CLAM_SKELETON}/bin/main.zsh" > "${target_dir}/bin/main"
+    
+    sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/config/main.zsh" > "${target_dir}/config/main.zsh"
+    sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/doc/explanation.mo" > "${target_dir}/doc/explanation.mo"
+    sed "s|{{name}}|${name}|g" "${CLAM_SKELETON}/sql/query.sql" > "${target_dir}/sql/query.sql"
     
     chmod +x "${target_dir}/bin/main"
 
     clam_success "Successfully cooked '$name' at $target_dir"
+    echo "Next step: clamchowder link $name"
+}
+
+function sub_link() {
+    local name=$1
+    if [[ -z "$name" ]]; then
+        clam_error "Missing command name. Usage: clamchowder link <name>"
+        return 1
+    fi
+
+    if ! is_valid_command "$name"; then
+        clam_error "Command '$name' not found."
+        return 1
+    fi
+
+    local src="${CLAM_COMMANDS_DIR}/${name}/bin/main"
+    local dest="/usr/local/bin/${name}"
+
+    clam_info "Linking $src to $dest..."
+    if [[ -e "$dest" ]]; then
+        clam_warn "$dest already exists. Overwriting..."
+        sudo rm "$dest"
+    fi
+    
+    sudo ln -s "$src" "$dest"
+    
+    if [[ $? -eq 0 ]]; then
+        clam_success "Successfully linked '$name'. You can now run it directly from anywhere!"
+    else
+        clam_error "Failed to create symlink. You might need sudo privileges."
+    fi
 }
 
 function sub_list() {
@@ -126,6 +162,7 @@ function sub_serve() {
 
 case "$1" in
     cook)   sub_cook "$2" ;;
+    link)   sub_link "$2" ;;
     list)   sub_list ;;
     taste)  sub_taste "$2" ;;
     serve)  shift; sub_serve "$@" ;;
